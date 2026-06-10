@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">WearTwitch</string>
+    <!--    <string name="hello_world">Hello, %1$s!</string>-->
+    <string name="add_channel">Add channel</string>
+    <string name="add_channel_content_description">Icon to add a new channel</string>
+    <string name="no_channel">You currently have no added channels!</string>
+</resources>
