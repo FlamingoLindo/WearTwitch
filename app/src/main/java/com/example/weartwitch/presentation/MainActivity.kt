@@ -6,9 +6,16 @@
 package com.example.weartwitch.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ScreenScaffold
@@ -19,7 +26,12 @@ import com.example.weartwitch.presentation.theme.WearTwitchTheme
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
+import com.example.weartwitch.presentation.composables.readChannels
 import com.example.weartwitch.presentation.screens.AddChannelScreen
+import com.example.weartwitch.presentation.screens.Channel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,25 +40,60 @@ class MainActivity : ComponentActivity() {
             WearApp("Android")
         }
     }
+
 }
 
 @Composable
 fun WearApp(greetingName: String) {
+    val context = LocalContext.current
+    val navController = rememberSwipeDismissableNavController()
+
     WearTwitchTheme {
-        val navController = rememberSwipeDismissableNavController()
+        LaunchedEffect(Unit) {
+            val channels = readChannels(context)
+
+            if (channels.isEmpty()) {
+                navController.navigate("no_channel") {
+                    popUpTo("start_up") { inclusive = true }
+                }
+            } else {
+                navController.navigate("channel/${channels.first()}") {
+                    popUpTo("start_up") { inclusive = true }
+                }
+            }
+        }
+
         AppScaffold {
             SwipeDismissableNavHost(
                 navController = navController,
-                startDestination = "home"
+                startDestination = "start_up"
             ) {
-                composable("home") {
+                composable("start_up") { }
+
+                composable("no_channel") {
                     val listState = rememberTransformingLazyColumnState()
                     ScreenScaffold(scrollState = listState) { contentPadding ->
                         EmptyChannelList(onAddChannel = { navController.navigate("add_channel") })
                     }
                 }
+
                 composable("add_channel") {
                     AddChannelScreen()
+                }
+
+                composable("channel/{name}") { backStackEntry ->
+                    val name = backStackEntry.arguments?.getString("name") ?: ""
+
+                    val listState = rememberTransformingLazyColumnState()
+
+                    ScreenScaffold(
+                        scrollState = listState
+                    ) { contentPadding ->
+                        Channel(
+                            name = name,
+                            modifier = Modifier.padding(contentPadding)
+                        )
+                    }
                 }
             }
         }

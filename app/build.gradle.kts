@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.dependencies
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -56,5 +58,6 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     implementation(libs.wear.navigation)
     implementation(libs.wear.input)
+    implementation(libs.datastore.preferences)
 }
 

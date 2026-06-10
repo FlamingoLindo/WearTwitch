@@ -1,5 +1,6 @@
 [versions]
 agp = "9.2.1"
+datastorePreferences = "1.2.1"
 playServicesWearable = "20.0.1"
 kotlin = "2.4.0"
 composeBom = "2026.05.01"
@@ -13,6 +14,7 @@ wear-navigation = "1.6.2"
 wear-input = "1.2.0"
 
 [libraries]
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 ui = { group = "androidx.compose.ui", name = "ui" }
