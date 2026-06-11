@@ -32,6 +32,8 @@ import com.example.weartwitch.presentation.screens.Channel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.weartwitch.presentation.composables.saveChannel
+import com.example.weartwitch.presentation.screens.SelectChannel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +49,15 @@ class MainActivity : ComponentActivity() {
 fun WearApp(greetingName: String) {
     val context = LocalContext.current
     val navController = rememberSwipeDismissableNavController()
+    var channels by remember { mutableStateOf(emptySet<String>()) }
 
     WearTwitchTheme {
         LaunchedEffect(Unit) {
-            val channels = readChannels(context)
+            channels = readChannels(context)
+            saveChannel(context, "flamingo_lindo")
+            saveChannel(context, "forsen")
+            saveChannel(context, "pleaseendmyloneliness")
+            saveChannel(context, "moonmoon")
 
             if (channels.isEmpty()) {
                 navController.navigate("no_channel") {
@@ -91,9 +98,19 @@ fun WearApp(greetingName: String) {
                     ) { contentPadding ->
                         Channel(
                             name = name,
-                            modifier = Modifier.padding(contentPadding)
+                            modifier = Modifier.padding(contentPadding),
+                            onSelectChannel = { navController.navigate("select_channel") }
                         )
                     }
+                }
+
+                composable("select_channel") {
+                    SelectChannel(
+                        channels,
+                        onAddChannel = { navController.navigate("add_channel") },
+                        onSelectChannel = { channelName ->
+                            navController.navigate("channel/$channelName")
+                        })
                 }
             }
         }

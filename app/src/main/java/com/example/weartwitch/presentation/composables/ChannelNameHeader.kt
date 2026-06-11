@@ -1,6 +1,7 @@
 package com.example.weartwitch.presentation.composables
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,13 +18,19 @@ import androidx.wear.compose.material3.Text
 @Composable
 fun ChannelNameHeader(
     name: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
+    var size = 10.sp
+    if (name.length > 14) {
+        size = 6.sp
+    }
     Column(
         modifier = modifier
             .padding(horizontal = 10.dp)
-            .padding(top = 8.dp),
-        ) {
+            .padding(top = 8.dp)
+            .clickable { onClick() },
+    ) {
         Text(
             text = name,
             modifier = Modifier
@@ -34,7 +41,7 @@ fun ChannelNameHeader(
                     shape = RoundedCornerShape(10.dp)
                 )
                 .padding(horizontal = 6.dp, vertical = 4.dp),
-            fontSize = 10.sp,
+            fontSize = size,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
             maxLines = 2

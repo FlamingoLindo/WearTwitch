@@ -15,7 +15,8 @@ import com.example.weartwitch.presentation.composables.Sender
 @Composable
 fun Channel(
     name: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSelectChannel: () -> Unit,
 ) {
     val mockMessages = listOf(
         ChatMessage(
@@ -66,7 +67,7 @@ fun Channel(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ChannelNameHeader(name)
+        ChannelNameHeader(name, onClick = onSelectChannel)
 
         ChatMessages(
             messages = mockMessages,
