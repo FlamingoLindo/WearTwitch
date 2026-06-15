@@ -15,19 +15,6 @@ import com.example.weartwitch.R
 import com.example.weartwitch.presentation.composables.AddChannel
 
 @Composable
-fun AddChannelScreen() {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        Text(
-//            text = "ADD CHANNEL SCREEN",
-//            modifier = Modifier.fillMaxWidth(0.8f),
-//            maxLines = 2,
-//            textAlign = TextAlign.Center,
-//            fontWeight = FontWeight.Bold
-//        )
-//    }
-    AddChannel()
+fun AddChannelScreen(onChannelAdd: (String) -> Unit) {
+    AddChannel(onChannelAdd = onChannelAdd)
 }

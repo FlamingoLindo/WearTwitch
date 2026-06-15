@@ -1,8 +1,6 @@
 package com.example.weartwitch.presentation.composables
 
 import android.app.RemoteInput
-import android.content.Context
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -19,39 +17,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Text
 import androidx.wear.input.RemoteInputIntentHelper
 import androidx.wear.input.wearableExtender
-import kotlinx.coroutines.flow.first
+import com.example.weartwitch.R
+import com.example.weartwitch.presentation.saveChannel
 import kotlinx.coroutines.launch
 
-val Context.dataStore by preferencesDataStore(name = "settings")
-val CHANNELS_KEY = stringSetPreferencesKey("channels")
-
-suspend fun readChannels(context: Context): Set<String> {
-    val prefs = context.dataStore.data.first()
-    return prefs[CHANNELS_KEY] ?: emptySet()
-}
-
-suspend fun saveChannel(context: Context, channel: String): Boolean {
-    val existing = readChannels(context)
-    if (channel in existing) return false
-
-    context.dataStore.edit { prefs ->
-        val current = prefs[CHANNELS_KEY] ?: emptySet()
-        prefs[CHANNELS_KEY] = current + channel
-    }
-    Log.d("WearTwitch", "Saved channel: $channel")
-    return true
-}
-
 @Composable
-fun AddChannel() {
+fun AddChannel(onChannelAdd: (String) -> Unit) {
     var channelName by remember { mutableStateOf("") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -66,7 +43,10 @@ fun AddChannel() {
 
         if (channel.isNotEmpty()) {
             channelName = channel
-            scope.launch { saveChannel(context, channel) }
+            scope.launch {
+                saveChannel(context, channel)
+                onChannelAdd(channel)
+            }
         }
     }
 
@@ -75,7 +55,7 @@ fun AddChannel() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(if (channelName.isEmpty()) "Enter channel name" else "Added: $channelName")
+        Text(stringResource(R.string.channel_name))
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -83,28 +63,13 @@ fun AddChannel() {
             onClick = {
                 val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
                 val remoteInput = RemoteInput.Builder("channel_name")
-                    .setLabel("Channel name")
+                    .setLabel("Input channel name")
                     .wearableExtender { setEmojisAllowed(false) }
                     .build()
                 RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
                 launcher.launch(intent)
             },
-            label = { Text("Type channel name") }
+            label = { Text(stringResource(R.string.input_channel_name)) }
         )
-
-//        Button(
-//            onClick = {
-//                scope.launch {
-//                    val added = saveChannel(context, "flamingo_lindo")
-//
-//                    if (added) {
-//                        channelName = "flamingo_lindo"
-//                    }
-//                }
-//            },
-//            label = {
-//                Text("Add Flamingo")
-//            }
-//        )
     }
 }

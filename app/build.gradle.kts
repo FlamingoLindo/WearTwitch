@@ -24,9 +24,13 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -59,5 +63,6 @@ dependencies {
     implementation(libs.wear.navigation)
     implementation(libs.wear.input)
     implementation(libs.datastore.preferences)
+    implementation(libs.coil.compose)
 }
 

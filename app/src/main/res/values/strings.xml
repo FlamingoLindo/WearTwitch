@@ -4,4 +4,8 @@
     <string name="add_channel">Add channel</string>
     <string name="add_channel_content_description">Icon to add a new channel</string>
     <string name="no_channel">You currently have no added channels!</string>
+    <string name="channel_name">Channel name:</string>
+    <string name="input_channel_name">Input channel name</string>
+    <string name="delete_cha_ico">Delete channel icon</string>
+    <string name="loading_channels">Loading channels…</string>
 </resources>

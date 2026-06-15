@@ -1,77 +1,50 @@
 package com.example.weartwitch.presentation.screens
 
-
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import com.example.weartwitch.presentation.composables.ChannelNameHeader
-import com.example.weartwitch.presentation.composables.ChatMessage
-import com.example.weartwitch.presentation.composables.ChatMessages
-import com.example.weartwitch.presentation.composables.Sender
+import com.example.weartwitch.presentation.composables.messages.ChatMessage
+import com.example.weartwitch.presentation.composables.messages.ChatMessages
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.runtime.setValue
 
 @Composable
 fun Channel(
     name: String,
     modifier: Modifier = Modifier,
     onSelectChannel: () -> Unit,
+    messages: List<ChatMessage>,
+    listState: ScalingLazyListState = rememberScalingLazyListState()
 ) {
-    val mockMessages = listOf(
-        ChatMessage(
-            sender = Sender(
-                username = "flamingo",
-                color = "#FF69B4"
-            ),
-            content = "Hello chat!",
-        ),
-        ChatMessage(
-            sender = Sender(
-                username = "viewer123",
-                color = "#00FF00"
-            ),
-            content = "Nice project 👀",
-        ),
-        ChatMessage(
-            sender = Sender(
-                username = "rustacean",
-                color = "#1E90FF"
-            ),
-            content = "Turn the lights blue!",
-        ),
-        ChatMessage(
-            sender = Sender(
-                username = "test",
-                color = "#1E90FF"
-            ),
-            content = "Wow!",
-        ),
-        ChatMessage(
-            sender = Sender(
-                username = "test2",
-                color = "#1E90FF"
-            ),
-            content = "LuL this streamer is so funny, cant wait to see how he does at the end of the game!",
-        ),
-        ChatMessage(
-            sender = Sender(
-                username = "test3",
-                color = "#1E90FF"
-            ),
-            content = "GG WP",
-        )
-    )
+    var showHeader by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    showHeader = !showHeader
+                }
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ChannelNameHeader(name, onClick = onSelectChannel)
+        if (showHeader) {
+            ChannelNameHeader(name, onClick = onSelectChannel)
+        }
 
         ChatMessages(
-            messages = mockMessages,
-            modifier = Modifier.weight(1f)
+            messages = messages,
+            modifier = Modifier.weight(1f),
+            listState = listState
         )
     }
 }
