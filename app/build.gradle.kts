@@ -3,6 +3,7 @@ import org.gradle.kotlin.dsl.dependencies
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "2.4.0"
 }
 
 android {
@@ -64,5 +65,7 @@ dependencies {
     implementation(libs.wear.input)
     implementation(libs.datastore.preferences)
     implementation(libs.coil.compose)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
 }
 

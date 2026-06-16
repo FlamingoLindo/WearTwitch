@@ -6,6 +6,7 @@
 package com.example.weartwitch.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weartwitch.presentation.screens.SelectChannel
 import com.example.weartwitch.presentation.screens.StartUp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +46,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+}
+
+object AppHttpClient {
+    val instance: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .pingInterval(4, TimeUnit.MINUTES)
+        .build()
 }
 
 @Composable
@@ -53,7 +67,6 @@ fun WearApp() {
         LaunchedEffect(Unit) {
             val currentChannels = getChannels(context).first()
             if (currentChannels.isEmpty()) {
-                // Pre-seed some popular channels if none exist
                 saveChannel(context, "flamingo_lindo")
                 saveChannel(context, "forsen")
                 saveChannel(context, "moonmoon")

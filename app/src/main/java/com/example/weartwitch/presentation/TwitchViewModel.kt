@@ -1,8 +1,10 @@
 package com.example.weartwitch.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weartwitch.presentation.composables.messages.ChatMessage
+import com.example.weartwitch.presentation.extensions.bttv.BttvClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,22 +15,22 @@ class TwitchViewModel : ViewModel() {
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
+    private val _bttvEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
+
     private var client: TwitchClient? = null
     private val messageBuffer = Channel<ChatMessage>(Channel.UNLIMITED)
 
     init {
-        // Process messages in batches to reduce UI recompositions
         viewModelScope.launch {
             val currentBatch = mutableListOf<ChatMessage>()
             while (true) {
                 val msg = messageBuffer.receive()
                 currentBatch.add(msg)
-                
-                // If there are more messages immediately available, keep collecting
+
                 var next = messageBuffer.tryReceive().getOrNull()
                 while (next != null) {
                     currentBatch.add(next)
-                    if (currentBatch.size > 20) break // Don't batch too many at once
+                    if (currentBatch.size > 20) break
                     next = messageBuffer.tryReceive().getOrNull()
                 }
 
@@ -41,11 +43,33 @@ class TwitchViewModel : ViewModel() {
     fun connect(channel: String) {
         client?.disconnect()
         _messages.value = emptyList()
+        _bttvEmotes.value = emptyMap() // clear stale emotes from previous channel
+
+        viewModelScope.launch {
+            try {
+                val bttvApi = BttvClient(AppHttpClient.instance)
+                val global = bttvApi.globalBttv()
+                val channelData = bttvApi.getChannelBttv(channel)
+
+                val merged = buildMap<String, String> {
+                    for (e in global) {
+                        put(e.code, "https://cdn.betterttv.net/emote/${e.id}/3x")
+                    }
+                    for (e in channelData.channelEmotes + channelData.sharedEmotes) {
+                        put(e.code, "https://cdn.betterttv.net/emote/${e.id}/3x")
+                    }
+                }
+                _bttvEmotes.value = merged
+            } catch (e: Exception) {
+                Log.e("WearTwitch", "BTTV fetch failed", e)
+            }
+        }
+
+        // Pass a lambda so TwitchClient always reads the latest emote map
         client = TwitchClient(
             channel = channel,
-            onMessage = { message ->
-                messageBuffer.trySend(message)
-            }
+            bttvEmotes = { _bttvEmotes.value },
+            onMessage = { message -> messageBuffer.trySend(message) }
         )
         client?.connect()
     }

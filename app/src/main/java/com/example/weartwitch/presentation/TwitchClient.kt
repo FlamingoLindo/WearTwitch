@@ -11,11 +11,10 @@ import java.util.concurrent.TimeUnit
 
 class TwitchClient(
     private val channel: String,
+    private val bttvEmotes: () -> Map<String, String>,
     private val onMessage: (ChatMessage) -> Unit
 ) {
-    private val client = OkHttpClient.Builder()
-        .pingInterval(4, TimeUnit.MINUTES)
-        .build()
+    private val client = AppHttpClient.instance
 
     private var ws: WebSocket? = null
 
@@ -38,7 +37,7 @@ class TwitchClient(
                     return
                 }
                 text.lines().forEach { line ->
-                    parseTwitchIrcLine(line)?.let(onMessage)
+                    parseTwitchIrcLine(line, bttvEmotes())?.let(onMessage)
                 }
             }
         })
@@ -47,7 +46,7 @@ class TwitchClient(
     fun disconnect() = ws?.close(1000, null)
 }
 
-fun parseTwitchIrcLine(raw: String): ChatMessage? {
+fun parseTwitchIrcLine(raw: String, bttvEmotes: Map<String, String> = emptyMap()): ChatMessage? {
     if (!raw.contains("PRIVMSG")) return null
 
     val tagSection = if (raw.startsWith("@")) raw.substringAfter("@").substringBefore(" :") else ""
@@ -78,6 +77,14 @@ fun parseTwitchIrcLine(raw: String): ChatMessage? {
                 val emoteName = content.substring(start, end + 1)
                 emoteMap[emoteName] =
                     "https://static-cdn.jtvnw.net/emoticons/v2/$emoteId/default/dark/3.0"
+            }
+        }
+    }
+
+    if (bttvEmotes.isNotEmpty()) {
+        content.split(" ").forEach { word ->
+            if (word.isNotBlank() && word !in emoteMap) {
+                bttvEmotes[word]?.let { url -> emoteMap[word] = url }
             }
         }
     }
