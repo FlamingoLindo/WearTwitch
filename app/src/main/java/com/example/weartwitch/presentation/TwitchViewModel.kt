@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weartwitch.presentation.composables.messages.ChatMessage
 import com.example.weartwitch.presentation.extensions.bttv.BttvClient
+import com.example.weartwitch.presentation.extensions.ffz.FfzClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +17,8 @@ class TwitchViewModel : ViewModel() {
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
     private val _bttvEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    private val _ffzEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
 
     private var client: TwitchClient? = null
     private val messageBuffer = Channel<ChatMessage>(Channel.UNLIMITED)
@@ -44,6 +47,7 @@ class TwitchViewModel : ViewModel() {
         client?.disconnect()
         _messages.value = emptyList()
         _bttvEmotes.value = emptyMap() // clear stale emotes from previous channel
+        _ffzEmotes.value = emptyMap()
 
         viewModelScope.launch {
             try {
@@ -51,7 +55,7 @@ class TwitchViewModel : ViewModel() {
                 val global = bttvApi.globalBttv()
                 val channelData = bttvApi.getChannelBttv(channel)
 
-                val merged = buildMap<String, String> {
+                val merged = buildMap {
                     for (e in global) {
                         put(e.code, "https://cdn.betterttv.net/emote/${e.id}/3x")
                     }
@@ -63,12 +67,30 @@ class TwitchViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("WearTwitch", "BTTV fetch failed", e)
             }
+
+            try {
+                val ffzApi = FfzClient(AppHttpClient.instance)
+                val global = ffzApi.globalFfz()
+                val channelData = ffzApi.getChannelFfz(channel)
+
+                val merged = buildMap{
+                    for (e in global + channelData) {
+                        val name = e.name ?: continue
+                        val url = e.urls?.values?.lastOrNull() ?: continue
+                        put(name, url)
+                    }
+                }
+                _ffzEmotes.value = merged
+            } catch (e: Exception) {
+                Log.e("WearTwitch", "FFZ fetch failed", e)
+            }
         }
 
-        // Pass a lambda so TwitchClient always reads the latest emote map
+        // Pass lambdas so TwitchClient always reads the latest emote maps
         client = TwitchClient(
             channel = channel,
             bttvEmotes = { _bttvEmotes.value },
+            ffzemotes = { _ffzEmotes.value },
             onMessage = { message -> messageBuffer.trySend(message) }
         )
         client?.connect()
