@@ -24,6 +24,7 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import com.example.weartwitch.presentation.screens.AddChannelScreen
 import com.example.weartwitch.presentation.screens.Channel
+import com.example.weartwitch.presentation.screens.LoadingEmotesScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -109,6 +110,8 @@ fun WearApp() {
                     val name = backStackEntry.arguments?.getString("name") ?: ""
                     val listState = rememberScalingLazyListState()
                     val messages by viewModel.messages.collectAsStateWithLifecycle()
+                    val chatState by viewModel.state.collectAsStateWithLifecycle()
+
                     LaunchedEffect(name) {
                         viewModel.connect(name)
                     }
@@ -116,13 +119,17 @@ fun WearApp() {
                     ScreenScaffold(
                         scrollState = listState
                     ) { contentPadding ->
-                        Channel(
-                            name = name,
-                            modifier = Modifier.padding(contentPadding),
-                            messages = messages,
-                            onSelectChannel = { navController.navigate("select_channel") },
-                            listState = listState
-                        )
+                        if (chatState == ChatState.LoadingEmotes || chatState == ChatState.Idle) {
+                            LoadingEmotesScreen(name)
+                        } else {
+                            Channel(
+                                name = name,
+                                modifier = Modifier.padding(contentPadding),
+                                messages = messages,
+                                onSelectChannel = { navController.navigate("select_channel") },
+                                listState = listState
+                            )
+                        }
                     }
                 }
 
