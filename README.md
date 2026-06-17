@@ -2,6 +2,8 @@
 
 WearTwitch is a lightweight, high-performance Twitch chat client specifically designed for **Wear OS**. Stay connected with your favorite Twitch communities directly from your wrist.
 
+https://github.com/user-attachments/assets/ad06896a-5a2b-4742-9bdb-1f1ebb692eba
+
 ## Features
 
 - **Real-time Chat**: Connect to any Twitch channel and read chat in real-time via WebSockets.
