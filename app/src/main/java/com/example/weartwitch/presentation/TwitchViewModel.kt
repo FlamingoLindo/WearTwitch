@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.weartwitch.presentation.composables.messages.ChatMessage
 import com.example.weartwitch.presentation.extensions.bttv.BttvClient
 import com.example.weartwitch.presentation.extensions.ffz.FfzClient
+import com.example.weartwitch.presentation.extensions.seventv.SevenTvClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,8 @@ class TwitchViewModel : ViewModel() {
     private val _bttvEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
 
     private val _ffzEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    private val _sevenEmotes = MutableStateFlow<Map<String, String>>(emptyMap())
 
     private var client: TwitchClient? = null
     private val messageBuffer = Channel<ChatMessage>(Channel.UNLIMITED)
@@ -46,8 +49,9 @@ class TwitchViewModel : ViewModel() {
     fun connect(channel: String) {
         client?.disconnect()
         _messages.value = emptyList()
-        _bttvEmotes.value = emptyMap() // clear stale emotes from previous channel
+        _bttvEmotes.value = emptyMap()
         _ffzEmotes.value = emptyMap()
+        _sevenEmotes.value = emptyMap()
 
         viewModelScope.launch {
             try {
@@ -73,7 +77,7 @@ class TwitchViewModel : ViewModel() {
                 val global = ffzApi.globalFfz()
                 val channelData = ffzApi.getChannelFfz(channel)
 
-                val merged = buildMap{
+                val merged = buildMap {
                     for (e in global + channelData) {
                         val name = e.name ?: continue
                         val url = e.urls?.values?.lastOrNull() ?: continue
@@ -84,13 +88,31 @@ class TwitchViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("WearTwitch", "FFZ fetch failed", e)
             }
+
+            try {
+                val sevenTvApi = SevenTvClient(AppHttpClient.instance)
+                val global = sevenTvApi.global7tv()
+                val channelData = sevenTvApi.getChannel7Tv(channel)
+
+                val merged = buildMap {
+                    for (e in global + channelData) {
+                        val name = e.name ?: continue
+                        val id = e.id ?: continue
+                        put(name, "https://cdn.7tv.app/emote/$id/3x.webp")
+                    }
+                }
+                _sevenEmotes.value = merged
+            } catch (e: Exception) {
+                Log.e("WearTwitch", "7TV fetch failed", e)
+            }
         }
 
         // Pass lambdas so TwitchClient always reads the latest emote maps
         client = TwitchClient(
             channel = channel,
             bttvEmotes = { _bttvEmotes.value },
-            ffzemotes = { _ffzEmotes.value },
+            ffzEmotes = { _ffzEmotes.value },
+            sevenTvEmotes = { _sevenEmotes.value },
             onMessage = { message -> messageBuffer.trySend(message) }
         )
         client?.connect()

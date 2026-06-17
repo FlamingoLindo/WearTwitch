@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit
 class TwitchClient(
     private val channel: String,
     private val bttvEmotes: () -> Map<String, String>,
-    private val ffzemotes: () -> Map<String, String>,
+    private val ffzEmotes: () -> Map<String, String>,
+    private val sevenTvEmotes: () -> Map<String, String>,
     private val onMessage: (ChatMessage) -> Unit
 ) {
     private val client = AppHttpClient.instance
@@ -38,7 +39,13 @@ class TwitchClient(
                     return
                 }
                 text.lines().forEach { line ->
-                    parseTwitchIrcLine(line, bttvEmotes(), ffzemotes())?.let(onMessage)
+                    parseTwitchIrcLine(
+                        line, bttvEmotes(),
+                        ffzEmotes(),
+                        sevenTvEmotes()
+                    )?.let(
+                        onMessage
+                    )
                 }
             }
         })
@@ -50,7 +57,9 @@ class TwitchClient(
 fun parseTwitchIrcLine(
     raw: String,
     bttvEmotes: Map<String, String> = emptyMap(),
-    ffzEmotes: Map<String, String> = emptyMap()
+    ffzEmotes: Map<String, String> = emptyMap(),
+    sevenTvEmotes: Map<String, String> = emptyMap()
+
 ): ChatMessage? {
     if (!raw.contains("PRIVMSG")) return null
 
@@ -98,6 +107,14 @@ fun parseTwitchIrcLine(
         content.split(" ").forEach { word ->
             if (word.isNotBlank() && word !in emoteMap) {
                 ffzEmotes[word]?.let { url -> emoteMap[word] = url }
+            }
+        }
+    }
+
+    if (sevenTvEmotes.isNotEmpty()) {
+        content.split(" ").forEach { word ->
+            if (word.isNotBlank() && word !in emoteMap) {
+                sevenTvEmotes[word]?.let { url -> emoteMap[word] = url }
             }
         }
     }
