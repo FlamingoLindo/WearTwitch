@@ -118,8 +118,6 @@ class TwitchViewModel : ViewModel() {
         client?.connect()
     }
 
-    fun disconnect() = client?.disconnect()
-
     override fun onCleared() {
         super.onCleared()
         client?.disconnect()

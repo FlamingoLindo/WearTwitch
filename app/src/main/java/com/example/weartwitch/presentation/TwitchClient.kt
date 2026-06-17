@@ -2,12 +2,10 @@ package com.example.weartwitch.presentation
 
 import com.example.weartwitch.presentation.composables.messages.ChatMessage
 import com.example.weartwitch.presentation.composables.messages.Sender
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
-import java.util.concurrent.TimeUnit
 
 class TwitchClient(
     private val channel: String,

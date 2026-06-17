@@ -3,7 +3,7 @@ package com.example.weartwitch.presentation.extensions.seventv
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class SevenTvChannelResponse(
     @SerialName("data") val data: SevenTvDataWrapper? = null,
     @SerialName("extensions") val extensions: SevenTvExtensions? = null
@@ -54,10 +54,4 @@ data class SevenTvData(
 @Serializable
 data class SevenTvEmoteSetGlobal(
     @SerialName("emotes") val emotes: List<SevenTvEmoteEntry>? = null
-)
-
-@Serializable
-data class SevenTvEmote(
-    @SerialName("name") val name: String? = null,
-    @SerialName("id") val id: String? = null
 )

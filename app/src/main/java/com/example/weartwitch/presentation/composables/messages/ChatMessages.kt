@@ -48,7 +48,7 @@ fun ChatMessages(
             val layoutInfo = listState.layoutInfo
             val visibleItems = layoutInfo.visibleItemsInfo
             if (visibleItems.isEmpty()) return@derivedStateOf true
-            
+
             val lastVisible = visibleItems.last().index
             lastVisible >= layoutInfo.totalItemsCount - 2
         }

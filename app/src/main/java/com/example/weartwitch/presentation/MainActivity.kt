@@ -63,9 +63,9 @@ fun WearApp() {
         LaunchedEffect(Unit) {
             val currentChannels = getChannels(context).first()
             if (currentChannels.isEmpty()) {
-                saveChannel(context, "flamingo_lindo")
-                saveChannel(context, "forsen")
-                saveChannel(context, "moonmoon")
+//                saveChannel(context, "flamingo_lindo")
+//                saveChannel(context, "forsen")
+//                saveChannel(context, "moonmoon")
 
                 navController.navigate("no_channel") {
                     popUpTo("start_up") { inclusive = true }
